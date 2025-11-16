@@ -141,7 +141,6 @@ std::string getDeviceCacheFilename(cl_device_id & d, const size_t & inverseSize)
 }
 
 int main(int argc, char * * argv) {
-	THIS LINE WILL LEAD TO A COMPILE ERROR. THIS TOOL SHOULD NOT BE USED, SEE README.
 
 	try {
 		ArgParser argp(argc, argv);
@@ -156,6 +155,9 @@ int main(int argc, char * * argv) {
 		bool bModeRange = false;
 		bool bModeMirror = false;
 		bool bModeDoubles = false;
+		std::string strModeRecover;
+		int testSeed = -1;
+		size_t maxIterations = 0; // 0 = unlimited (default)
 		int rangeMin = 0;
 		int rangeMax = 0;
 		std::vector<size_t> vDeviceSkipIndex;
@@ -177,6 +179,9 @@ int main(int argc, char * * argv) {
 		argp.addSwitch('7', "range", bModeRange);
 		argp.addSwitch('8', "mirror", bModeMirror);
 		argp.addSwitch('9', "leading-doubles", bModeDoubles);
+		argp.addSwitch('r', "recover", strModeRecover);
+		argp.addSwitch('t', "test-seed", testSeed);
+		argp.addSwitch('x', "max-iterations", maxIterations);
 		argp.addSwitch('m', "min", rangeMin);
 		argp.addSwitch('M', "max", rangeMax);
 		argp.addMultiSwitch('s', "skip", vDeviceSkipIndex);
@@ -218,6 +223,8 @@ int main(int argc, char * * argv) {
 			mode = Mode::mirror();
 		} else if (bModeDoubles) {
 			mode = Mode::doubles();
+		} else if (!strModeRecover.empty()) {
+			mode = Mode::recover(strModeRecover);
 		} else {
 			std::cout << g_strHelp << std::endl;
 			return 0;
@@ -343,9 +350,14 @@ int main(int argc, char * * argv) {
 
 		std::cout << std::endl;
 
-		Dispatcher d(clContext, clProgram, mode, worksizeMax == 0 ? inverseSize * inverseMultiple : worksizeMax, inverseSize, inverseMultiple, 0);
+		Dispatcher d(clContext, clProgram, mode, worksizeMax == 0 ? inverseSize * inverseMultiple : worksizeMax, inverseSize, inverseMultiple, 0, testSeed, maxIterations);
 		for (auto & i : vDevices) {
 			d.addDevice(i, worksizeLocal, mDeviceIndex[i]);
+		}
+
+		if (testSeed >= 0) {
+			std::cout << "⚠️  TEST MODE: Using fixed seed " << testSeed << " for address generation" << std::endl;
+			std::cout << std::endl;
 		}
 
 		d.run();
@@ -359,4 +371,3 @@ int main(int argc, char * * argv) {
 
 	return 1;
 }
-

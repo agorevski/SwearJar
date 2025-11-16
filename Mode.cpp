@@ -140,3 +140,26 @@ Mode Mode::doubles() {
 	r.kernel = "profanity_score_doubles";
 	return r;
 }
+
+Mode Mode::recover(const std::string strTargetAddress) {
+	Mode r;
+	r.name = "recover";
+	r.kernel = "profanity_score_recover";
+
+	// Parse the target address (expecting 0x prefix + 40 hex chars)
+	std::string hexAddress = strTargetAddress;
+	if (hexAddress.substr(0, 2) == "0x" || hexAddress.substr(0, 2) == "0X") {
+		hexAddress = hexAddress.substr(2);
+	}
+
+	// Convert hex string to bytes and store in data1
+	std::fill(r.data1, r.data1 + sizeof(r.data1), cl_uchar(0));
+	std::fill(r.data2, r.data2 + sizeof(r.data2), cl_uchar(0));
+
+	for (size_t i = 0; i < 20 && i * 2 < hexAddress.length(); ++i) {
+		std::string byteStr = hexAddress.substr(i * 2, 2);
+		r.data1[i] = static_cast<cl_uchar>(std::stoul(byteStr, nullptr, 16));
+	}
+
+	return r;
+}

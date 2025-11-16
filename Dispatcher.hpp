@@ -36,7 +36,7 @@ class Dispatcher {
 		struct Device {
 			static cl_command_queue createQueue(cl_context & clContext, cl_device_id & clDeviceId);
 			static cl_kernel createKernel(cl_program & clProgram, const std::string s);
-			static cl_ulong4 createSeed();
+			cl_ulong4 createSeed();
 
 			Device(Dispatcher & parent, cl_context & clContext, cl_program & clProgram, cl_device_id clDeviceId, const size_t worksizeLocal, const size_t size, const size_t index, const Mode & mode);
 			~Device();
@@ -68,6 +68,7 @@ class Dispatcher {
 			// Seed and round information
 			cl_ulong4 m_clSeed;
 			cl_ulong m_round;
+			size_t m_currentIterations;
 
 			// Speed sampling
 			SpeedSample m_speed;
@@ -78,7 +79,7 @@ class Dispatcher {
 		};
 
 	public:
-		Dispatcher(cl_context & clContext, cl_program & clProgram, const Mode mode, const size_t worksizeMax, const size_t inverseSize, const size_t inverseMultiple, const cl_uchar clScoreQuit = 0);
+		Dispatcher(cl_context & clContext, cl_program & clProgram, const Mode mode, const size_t worksizeMax, const size_t inverseSize, const size_t inverseMultiple, const cl_uchar clScoreQuit = 0, const int testSeed = -1, const size_t maxIterationsPerSeed = 0);
 		~Dispatcher();
 
 		void addDevice(cl_device_id clDeviceId, const size_t worksizeLocal, const size_t index);
@@ -127,6 +128,9 @@ class Dispatcher {
 		size_t m_sizeInitTotal;
 		size_t m_sizeInitDone;
 		bool m_quit;
+		cl_ulong m_seedCounter = 0;
+		int m_testSeed = -1;
+		size_t m_maxIterationsPerSeed = 0;
 };
 
 #endif /* HPP_DISPATCHER */

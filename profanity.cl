@@ -840,3 +840,25 @@ __kernel void profanity_score_doubles(__global mp_number * const pInverse, __glo
 
 	profanity_result_update(id, hash, pResult, score, scoreMax);
 }
+
+__kernel void profanity_score_recover(__global mp_number * const pInverse, __global result * const pResult, __constant const uchar * const data1, __constant const uchar * const data2, const uchar scoreMax) {
+	const size_t id = get_global_id(0);
+	__global const uchar * const hash = pInverse[id].d;
+	int score = 0;
+
+	// Check if hash matches target address (stored in data1)
+	bool match = true;
+	for (int i = 0; i < 20; ++i) {
+		if (hash[i] != data1[i]) {
+			match = false;
+			break;
+		}
+	}
+
+	// Use maximum score if match found to signal discovery
+	if (match) {
+		score = PROFANITY_MAX_SCORE;
+	}
+
+	profanity_result_update(id, hash, pResult, score, scoreMax);
+}
